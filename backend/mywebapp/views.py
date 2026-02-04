@@ -1,19 +1,18 @@
 from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.permissions import AllowAny
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from .models import Course, User
-from .serializers import CourseSerializer, UserSerializer, CustomTokenObtainPairSerializer
+from .serializers import CourseSerializer, UserSerializer
 
 
 # Create your views here.
-
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
 
 class IsInstructorOrReadOnly(permissions.BasePermission):
     """
@@ -23,6 +22,20 @@ class IsInstructorOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         return request.user.is_authenticated and request.user.role == 'instructor'
+
+class CustomLoginView(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'user_id': user.pk,
+            'role': user.role,
+            'email': user.email
+        })
 
 #view for user registaration
 class UserRegisterView(generics.CreateAPIView):
@@ -58,6 +71,25 @@ class ProfileUpdateView(generics.UpdateAPIView):
 
     def get_object(self):
         return self.request.user
+    
+
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+
+        return Response({
+            "message": "Registration successful! Please log in.",
+            "user": serializer.data
+        },
+        status=status.HTTP_201_CREATED,
+        headers=headers)
 
 class PasswordResetRequestView(APIView):
     permission_classes = [permissions.AllowAny]
