@@ -1,86 +1,176 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import './Auth.css';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom';
+import { Box, Button, TextField, Typography, Paper, Alert, CircularProgress, Avatar, Grid, Link, IconButton, InputAdornment } from '@mui/material';
+import { LockOutlined, Visibility, VisibilityOff } from '@mui/icons-material';
+import { useAuth } from '../AuthContext';
 
-function Login({ onLogin }) {
-  const [formData, setFormData] = useState({
-    username: '',
-    password: ''
+const Login = () => {
+  const [credentials, setCredentials] = useState({
+    email: '',
+    password: '',
   });
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const [successMessage, setSuccessMessage] = useState(location.state?.message || '');
+  const from = location.state?.from?.pathname || '/dashboard';
+  const { login } = useAuth();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+  useEffect(() => {
+    // This effect clears the location state after reading the message.
+    // This prevents the message from reappearing if the user refreshes the page.
+    if (location.state?.message) {
+      // Replace the current entry in the history stack with the same path but without the state.
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location, navigate]);
+
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
+  const handleMouseDownPassword = (event) => {
+    event.preventDefault();
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setCredentials((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError('');
+    setSuccessMessage('');
+    setLoading(true);
+
     try {
-      const response = await fetch('http://127.0.0.1:8000/mywebapp/login/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
+      // The backend expects 'username' and 'password'.
+      // Since we registered with email as username, we map email input to username here.
+      await login({
+        username: credentials.email,
+        password: credentials.password,
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Store tokens and user info
-        localStorage.setItem('access_token', data.access);
-        localStorage.setItem('refresh_token', data.refresh);
-        localStorage.setItem('user', JSON.stringify({ username: data.username, role: data.role, id: data.user_id }));
-        
-        if (onLogin) onLogin();
-        alert('Login successful!');
-        navigate('/courses');
-      } else {
-        alert('Login failed: ' + (data.detail || 'Invalid credentials'));
-      }
-    } catch (error) {
-      console.error('Error:', error);
+      
+      // Redirect to the page they were trying to access, or the dashboard by default
+      navigate(from, { replace: true });
+    } catch (err) {
+      setError(err.message || 'Invalid email or password.');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-form">
-        <h2>Welcome Back</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Username</label>
-            <input className="form-control" type="text" name="username" value={formData.username} onChange={handleChange} required placeholder="Enter your username" />
-          </div>
-          <div className="form-group">
-            <label>Password</label>
-            <div className="password-wrapper">
-              <input className="form-control" type={showPassword ? "text" : "password"} name="password" value={formData.password} onChange={handleChange} required placeholder="Enter your password" />
-              <span className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
-                {showPassword ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                )}
-              </span>
-            </div>
-          </div>
-          <Link to="/forgot-password" className="forgot-password">Forgot Password?</Link>
-          <button className="btn-submit" type="submit" disabled={isLoading}>
-            {isLoading ? <span className="spinner"></span> : 'Login'}
-          </button>
-        </form>
-      </div>
-    </div>
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: 'calc(100vh - 64px)',
+        bgcolor: 'background.default',
+        p: 3,
+      }}
+    >
+        <Paper
+          elevation={8}
+          sx={{
+            padding: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            maxWidth: 480,
+            width: '100%',
+            borderRadius: 3,
+            mx: { xs: 2, md: 4 },
+            bgcolor: 'background.paper',
+            boxShadow: 6,
+            animation: 'fadeIn 0.6s ease-out',
+            '@keyframes fadeIn': {
+              '0%': { opacity: 0, transform: 'translateY(20px)' },
+              '100%': { opacity: 1, transform: 'translateY(0)' },
+            },
+          }}
+        >
+        <Box component="img" src="/delisio%20couses.png" alt="Logo" sx={{ width: 88, mb: 1 }} />
+        <Avatar sx={{ m: 1, bgcolor: 'primary.main', width: 56, height: 56 }}>
+          <LockOutlined fontSize="large" />
+        </Avatar>
+        <Typography component="h1" variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+          Sign In
+        </Typography>
+        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
+          {successMessage && <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>{successMessage}</Alert>}
+          {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            id="email"
+            label="Email Address"
+            name="email"
+            autoComplete="email"
+            autoFocus
+            value={credentials.email}
+            onChange={handleChange}
+            disabled={loading}
+            InputProps={{ sx: { borderRadius: 2 } }}
+          />
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            name="password"
+            label="Password"
+            type={showPassword ? 'text' : 'password'}
+            id="password"
+            autoComplete="current-password"
+            value={credentials.password}
+            onChange={handleChange}
+            disabled={loading}
+            InputProps={{
+              sx: { borderRadius: 2 },
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={handleClickShowPassword}
+                    onMouseDown={handleMouseDownPassword}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 3, mb: 2, py: 1.5, borderRadius: 2, fontSize: '1rem', textTransform: 'none', fontWeight: 'bold' }}
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} /> : 'Sign In'}
+          </Button>
+          <Grid container>
+            <Grid item xs>
+              <Link component={RouterLink} to="/password-reset" variant="body2" sx={{ textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+                Forgot password?
+              </Link>
+            </Grid>
+            <Grid item>
+              <Link component={RouterLink} to="/register" variant="body2" sx={{ textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+                {"Don't have an account? Sign Up"}
+              </Link>
+            </Grid>
+          </Grid>
+        </Box>
+      </Paper>
+    </Box>
   );
-}
+};
 
 export default Login;

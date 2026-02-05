@@ -1,66 +1,64 @@
-import { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import CourseList from './components/CourseList';
-import Register from './components/Register';
+// c:\Users\Admin\Documents\GitHub\DelissioHospitalityCourses\frontend\src\App.jsx
+import React, { useState, useMemo } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Box, ThemeProvider, CssBaseline } from '@mui/material';
+import getTheme from './theme';
+
+// Import your components
 import Login from './components/Login';
+import Register from './components/Register';
+import CourseList from './components/CourseList';
+import Navbar from './components/Navbar';
+import Dashboard from './components/Dashboard';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
-import './App.css';
+import ProtectedRoute from './components/ProtectedRoute'; // Import the new component
+import { AuthProvider } from './AuthContext';
 
 function App() {
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
-
-  const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
-    setUser(null);
-    // Optional: Redirect to login page via window.location if needed
-    // window.location.href = '/login'; 
-  };
+  const [mode, setMode] = useState('light');
+  const theme = useMemo(() => getTheme(mode), [mode]);
+  const toggleTheme = () => setMode((m) => (m === 'light' ? 'dark' : 'light'));
 
   return (
-    <Router>
-      <div className="App">
-        <header>
-          <h1>Delissio Hospitality Courses</h1>
-          <nav>
-            <Link to="/courses">Courses</Link> |{' '}
-            {user ? (
-              <>
-                <span style={{ marginRight: '10px' }}>Welcome, {user.username}</span>
-                <button onClick={handleLogout} style={{ cursor: 'pointer', background: 'none', border: 'none', fontSize: 'inherit', color: 'inherit', textDecoration: 'underline' }}>
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link to="/login">Login</Link> |{' '}
-                <Link to="/register">Register</Link>
-              </>
-            )}
-          </nav>
-        </header>
-        <main>
+    <AuthProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Router>
+          <Navbar mode={mode} toggleTheme={toggleTheme} />
+          <Box component="main">
           <Routes>
-            <Route path="/courses" element={<CourseList />} />
+            {/* Public Routes */}
+            <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/login" element={<Login onLogin={() => {
-              const savedUser = localStorage.getItem('user');
-              if (savedUser) {
-                setUser(JSON.parse(savedUser));
-              }
-            }} />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
-            <Route path="/" element={<CourseList />} />
+            <Route path="/password-reset" element={<ForgotPassword />} />
+            <Route path="/password-reset/confirm/:uid/:token" element={<ResetPassword />} />
+            
+            {/* Protected Routes */}
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/courses" 
+              element={
+                <ProtectedRoute>
+                  <CourseList />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Default route redirects to courses */}
+            <Route path="/" element={<Navigate to="/dashboard" />} />
           </Routes>
-        </main>
-      </div>
-    </Router>
+        </Box>
+      </Router>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 

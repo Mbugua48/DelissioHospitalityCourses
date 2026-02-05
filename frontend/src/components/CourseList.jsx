@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { Container, Typography, Card, CardContent, Grid, CircularProgress, Alert, Box } from '@mui/material';
+import { api } from '../services/authService';
 
 function CourseList() {
   const [courses, setCourses] = useState([]);
@@ -6,41 +8,71 @@ function CourseList() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch data from the Django API
-    fetch('http://127.0.0.1:8000/mywebapp/courses/')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => {
-        setCourses(data);
+    const fetchCourses = async () => {
+      try {
+        // Use the 'api' instance which automatically includes the auth token.
+        // The backend for this endpoint must be configured to require authentication.
+        // Note: If you get a 404, ensure this URL matches your Django urls.py exactly.
+        const response = await api.get('courses/');
+        setCourses(response.data);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError(err);
+      } finally {
         setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error fetching data:', error);
-        setError(error);
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchCourses();
   }, []);
 
-  if (loading) return <p>Loading courses...</p>;
-  if (error) return <p>Error loading courses: {error.message}</p>;
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    const errorMessage = error.response?.status === 404
+      ? 'API endpoint not found (404). Please check the URL in CourseList.jsx against your backend urls.py.'
+      : error.message;
+
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <Alert severity="error">Error loading courses: {errorMessage}</Alert>
+      </Box>
+    );
+  }
 
   return (
-    <div>
-      <h1>Available Courses</h1>
-      <div className="course-list">
-        {courses.map(course => (
-          <div key={course.id} className="course-card" style={{ border: '1px solid #ccc', margin: '10px', padding: '10px' }}>
-            <h2>{course.title}</h2>
-            <p>{course.description}</p>
-            <small>Instructor: {course.instructor}</small>
-          </div>
-        ))}
-      </div>
-    </div>
+    <Box sx={{ minHeight: 'calc(100vh - 64px)', bgcolor: 'grey.50', py: 6 }}>
+      <Container maxWidth="lg">
+        <Typography variant="h3" component="h1" gutterBottom align="center" sx={{ mb: 6, fontWeight: 700, color: 'text.primary' }}>
+          Available Courses
+        </Typography>
+        <Grid container spacing={4}>
+          {courses.map(course => (
+            <Grid item key={course.id} xs={12} sm={6} md={4}>
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 3, boxShadow: 2, transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'translateY(-4px)', boxShadow: 8 } }}>
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Typography gutterBottom variant="h5" component="h2">
+                    {course.title}
+                  </Typography>
+                  <Typography>
+                    {course.description}
+                  </Typography>
+                  <Typography variant="caption" display="block" sx={{ mt: 2 }}>
+                    Instructor: {course.instructor}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    </Box>
   );
 }
 

@@ -1,78 +1,249 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './Auth.css';
+import React, { useState } from 'react';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { Box, Button, TextField, Typography, Paper, Alert, CircularProgress, Avatar, Grid, MenuItem, Select, InputLabel, FormControl, Link, IconButton, InputAdornment } from '@mui/material';
+import { LockOutlined, Visibility, VisibilityOff } from '@mui/icons-material';
+import authService from '../services/authService.js';
 
-function Register() {
+const Register = () => {
   const [formData, setFormData] = useState({
-    username: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
-    role: 'learner' // Default role
+    confirmPassword: '',
+    role: 'learner',
   });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
+  const handleClickShowConfirmPassword = () => setShowConfirmPassword((show) => !show);
+  const handleMouseDownPassword = (event) => {
+    event.preventDefault();
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch('http://127.0.0.1:8000/mywebapp/register/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
 
-      if (response.ok) {
-        alert('Registration successful! Please login.');
-        navigate('/login');
-      } else {
-        const data = await response.json();
-        alert('Registration failed: ' + JSON.stringify(data));
-      }
-    } catch (error) {
-      console.error('Error:', error);
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setMessage('');
+    setError('');
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords don't match!");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const payload = {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        username: formData.email,
+        role: formData.role,
+      };
+
+      const data = await authService.register(payload);
+      navigate('/login', { state: { message: data.message || 'Registration successful! Please log in.' } });
+    } catch (err) {
+      setError(err.message || 'An unknown error occurred.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-form">
-        <h2>Create Account</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Username</label>
-            <input className="form-control" type="text" name="username" value={formData.username} onChange={handleChange} required placeholder="Choose a username" />
-          </div>
-          <div className="form-group">
-            <label>Email</label>
-            <input className="form-control" type="email" name="email" value={formData.email} onChange={handleChange} required placeholder="Enter your email" />
-          </div>
-          <div className="form-group">
-            <label>Password</label>
-            <div className="password-wrapper">
-              <input className="form-control" type={showPassword ? "text" : "password"} name="password" value={formData.password} onChange={handleChange} required placeholder="Create a password" />
-              <span className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
-                {showPassword ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                )}
-              </span>
-            </div>
-          </div>
-          <button className="btn-submit" type="submit">Register</button>
-        </form>
-      </div>
-    </div>
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: 'calc(100vh - 64px)',
+        bgcolor: 'background.default',
+        p: 3,
+      }}
+    >
+        <Paper
+          elevation={8}
+          sx={{
+            padding: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '100%',
+            maxWidth: 560,
+            borderRadius: 3,
+            mx: { xs: 2, md: 4 }, // Add horizontal margin
+            animation: 'fadeIn 0.6s ease-out',
+            bgcolor: 'background.paper',
+            boxShadow: 6,
+            '@keyframes fadeIn': {
+              '0%': { opacity: 0, transform: 'translateY(20px)' },
+              '100%': { opacity: 1, transform: 'translateY(0)' },
+            },
+          }}
+        >
+          <Box component="img" src="/delisio%20couses.png" alt="Logo" sx={{ width: 92, mb: 1 }} />
+          <Avatar sx={{ m: 1, bgcolor: 'primary.main', width: 56, height: 56 }}>
+            <LockOutlined fontSize="large" />
+          </Avatar>
+          <Typography component="h1" variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+            Sign Up
+          </Typography>
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{ mt: 3, width: '100%' }}
+          >
+            {message && <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>{message}</Alert>}
+            {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  required
+                  fullWidth
+                  label="First Name"
+                  name="firstName"
+                  autoFocus
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  disabled={loading}
+                  InputProps={{ sx: { borderRadius: 2 } }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  required
+                  fullWidth
+                  label="Last Name"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  disabled={loading}
+                  InputProps={{ sx: { borderRadius: 2 } }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel id="role-label">Role</InputLabel>
+                  <Select
+                    labelId="role-label"
+                    id="role"
+                    name="role"
+                    value={formData.role}
+                    label="Role"
+                    onChange={handleChange}
+                    disabled={loading}
+                    sx={{ borderRadius: 2 }}
+                  >
+                    <MenuItem value="learner">Learner</MenuItem>
+                    <MenuItem value="instructor">Instructor</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  label="Email Address"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={loading}
+                  InputProps={{ sx: { borderRadius: 2 } }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  label="Password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  disabled={loading}
+                  InputProps={{
+                    sx: { borderRadius: 2 },
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={handleClickShowPassword}
+                          onMouseDown={handleMouseDownPassword}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  label="Confirm Password"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  disabled={loading}
+                  InputProps={{
+                    sx: { borderRadius: 2 },
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={handleClickShowConfirmPassword}
+                          onMouseDown={handleMouseDownPassword}
+                          edge="end"
+                        >
+                          {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+            </Grid>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 4, mb: 2, py: 1.5, borderRadius: 2, fontSize: '1rem', textTransform: 'none', fontWeight: 'bold' }}
+              disabled={loading}
+            >
+              {loading ? <CircularProgress size={24} /> : 'Sign Up'}
+            </Button>
+            <Grid container justifyContent="flex-end">
+              <Grid item>
+                <Link component={RouterLink} to="/login" variant="body2" sx={{ textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+                  Already have an account? Sign in
+                </Link>
+              </Grid>
+            </Grid>
+          </Box>
+        </Paper>
+    </Box>
   );
-}
+};
 
 export default Register;

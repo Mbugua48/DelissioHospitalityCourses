@@ -43,11 +43,12 @@ class UserRegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
 
+
 # List all courses or create a new one (if instructor)
 class CourseListCreateView(generics.ListCreateAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    permission_classes = [IsInstructorOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated, IsInstructorOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(instructor=self.request.user)
