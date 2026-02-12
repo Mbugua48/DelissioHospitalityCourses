@@ -8,11 +8,15 @@ import getTheme from './theme';
 import Login from './components/Login';
 import Register from './components/Register';
 import CourseList from './components/CourseList';
+import CourseDetail from './components/CourseDetail';
 import Navbar from './components/Navbar';
 import Dashboard from './components/Dashboard';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
 import ProtectedRoute from './components/ProtectedRoute'; // Import the new component
+import LandingPage from './components/LandingPage'; // Import the landing page component
+import Certificate from './components/Certificate';
+import MyCertificates from './components/MyCertificates';
 import { AuthProvider } from './AuthContext';
 
 function App() {
@@ -29,6 +33,7 @@ function App() {
           <Box component="main">
           <Routes>
             {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/password-reset" element={<ForgotPassword />} />
@@ -48,6 +53,30 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CourseList />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/courses/:id" 
+              element={
+                <ProtectedRoute>
+                  <CourseDetail />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/courses/:id/certificate" 
+              element={
+                <ProtectedRoute>
+                  <Certificate />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/my-certificates" 
+              element={
+                <ProtectedRoute>
+                  <MyCertificates />
                 </ProtectedRoute>
               } 
             />

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
-import { Box, Paper, Typography, TextField, Button, Alert, CircularProgress, IconButton, InputAdornment, Avatar, Link } from '@mui/material';
+import { Box, TextField, Button, Alert, CircularProgress, IconButton, InputAdornment, Link, Snackbar } from '@mui/material';
 import { Visibility, VisibilityOff, LockOutlined } from '@mui/icons-material';
 import authService from '../services/authService.js';
+import AuthLayout from './AuthLayout';
 
 function ResetPassword() {
   const { uid, token } = useParams();
@@ -13,6 +14,13 @@ function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setError('');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,8 +33,7 @@ function ResetPassword() {
     setError('');
     try {
       await authService.resetPasswordConfirm({ uid, token, password });
-      alert('Password reset successful! Please login with your new password.');
-      navigate('/login');
+      navigate('/login', { state: { message: 'Password reset successful! Please login with your new password.' } });
     } catch (err) {
       setError(err.message || 'Failed to reset password');
     } finally {
@@ -41,41 +48,8 @@ function ResetPassword() {
   };
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: 'calc(100vh - 64px)',
-        bgcolor: 'grey.50',
-      }}
-    >
-        <Paper
-          elevation={6}
-          sx={{
-            padding: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            maxWidth: 450,
-            width: '100%',
-            borderRadius: 3,
-            mx: { xs: 2, md: 4 },
-            animation: 'fadeIn 0.6s ease-out',
-            '@keyframes fadeIn': {
-              '0%': { opacity: 0, transform: 'translateY(20px)' },
-              '100%': { opacity: 1, transform: 'translateY(0)' },
-            },
-          }}
-        >
-        <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-          <LockOutlined />
-        </Avatar>
-        <Typography component="h1" variant="h5">
-          Set New Password
-        </Typography>
+    <AuthLayout title="Set New Password" avatarIcon={<LockOutlined />}>
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
-          {error && <Alert severity="error" sx={{ width: '100%', mb: 2 }}>{error}</Alert>}
           <TextField
             margin="normal"
             required
@@ -144,9 +118,13 @@ function ResetPassword() {
               Back to Sign In
             </Link>
           </Box>
+          <Snackbar open={!!error} autoHideDuration={6000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+            <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: '100%' }} variant="filled">
+              {error}
+            </Alert>
+          </Snackbar>
         </Box>
-      </Paper>
-    </Box>
+    </AuthLayout>
   );
 }
 

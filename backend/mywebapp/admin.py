@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import User
-from .models import Course
+from .models import Course, Lesson, Quiz, Question, Certificate
 
 # Register your models here.
 
@@ -16,11 +16,24 @@ class CustomUserAdmin(UserAdmin):
 
 admin.site.register(User, CustomUserAdmin)
 
+class LessonInline(admin.StackedInline):
+    model = Lesson
+    extra = 1
+
+class QuestionInline(admin.TabularInline):
+    model = Question
+    extra = 1
+
+class QuizAdmin(admin.ModelAdmin):
+    inlines = [QuestionInline]
+
 class CourseAdmin(admin.ModelAdmin):
     list_display = ('title', 'instructor', 'created_at')
     search_fields = ('title', 'instructor__username')
     list_filter = ('created_at',)
+    inlines = [LessonInline]
 
 admin.site.register(Course, CourseAdmin)
+admin.site.register(Quiz, QuizAdmin)
+admin.site.register(Certificate)
     
-

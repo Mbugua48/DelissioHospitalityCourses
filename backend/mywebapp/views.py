@@ -8,8 +8,9 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
-from .models import Course, User
-from .serializers import CourseSerializer, UserSerializer
+from django.shortcuts import get_object_or_404
+from .models import Course, User, Lesson, LessonCompletion, Quiz, Certificate
+from .serializers import CourseSerializer, UserSerializer, LessonSerializer, CertificateSerializer
 
 
 # Create your views here.
@@ -58,6 +59,125 @@ class CourseDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     permission_classes = [IsInstructorOrReadOnly]
+
+# List lessons for a specific course or create a new one
+class LessonListCreateView(generics.ListCreateAPIView):
+    serializer_class = LessonSerializer
+    permission_classes = [IsInstructorOrReadOnly]
+
+    def get_queryset(self):
+        return Lesson.objects.filter(course_id=self.kwargs['course_pk']).order_by('order')
+
+    def perform_create(self, serializer):
+        course = get_object_or_404(Course, pk=self.kwargs['course_pk'])
+        if self.request.user != course.instructor:
+            raise permissions.PermissionDenied("You can only add lessons to your own courses.")
+        serializer.save(course=course)
+
+# Mark a lesson as complete
+class MarkLessonCompleteView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        lesson = get_object_or_404(Lesson, pk=pk)
+        LessonCompletion.objects.get_or_create(user=request.user, lesson=lesson)
+        return Response({'status': 'completed'}, status=status.HTTP_200_OK)
+
+# Submit quiz answers and mark lesson complete if passed
+class SubmitQuizView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        lesson = get_object_or_404(Lesson, pk=pk)
+        if not hasattr(lesson, 'quiz'):
+             return Response({'error': 'No quiz found for this lesson'}, status=400)
+        
+        quiz = lesson.quiz
+        user_answers = request.data.get('answers')
+        if not isinstance(user_answers, dict):
+            user_answers = {}
+
+        score = 0
+        total = quiz.questions.count()
+        results = {}
+
+        for question in quiz.questions.all():
+            ans = user_answers.get(str(question.id))
+            is_correct = False
+            try:
+                if ans is not None and int(ans) == question.correct_answer:
+                    score += 1
+                    is_correct = True
+            except (ValueError, TypeError):
+                pass
+            
+            results[question.id] = {'is_correct': is_correct, 'correct_answer': question.correct_answer}
+        
+        passed = False
+        if total > 0 and (score / total) * 100 >= quiz.passing_score:
+            passed = True
+            LessonCompletion.objects.get_or_create(user=request.user, lesson=lesson)
+        
+        return Response({'passed': passed, 'score': score, 'total': total, 'results': results})
+
+class CertificateView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, course_pk):
+        course = get_object_or_404(Course, pk=course_pk)
+        user = request.user
+
+        total_lessons = course.lesson_set.count()
+        completed_lessons = LessonCompletion.objects.filter(
+            user=user,
+            lesson__course=course
+        ).count()
+
+        if total_lessons > 0 and total_lessons == completed_lessons:
+            certificate, created = Certificate.objects.get_or_create(user=user, course=course)
+            serializer = CertificateSerializer(certificate)
+            return Response(serializer.data)
+        
+        return Response({'status': 'not_eligible', 'message': 'You have not completed all lessons for this course.'}, status=status.HTTP_403_FORBIDDEN)
+
+# List all certificates for the authenticated user
+class UserCertificatesView(generics.ListAPIView):
+    serializer_class = CertificateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Certificate.objects.filter(user=self.request.user).order_by('-issued_at')
+
+# List courses with progress for the authenticated user
+class UserCourseProgressView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        courses = Course.objects.all()
+        data = []
+        
+        for course in courses:
+            total_lessons = course.lesson_set.count()
+            if total_lessons == 0:
+                continue
+                
+            completed_lesson_ids = LessonCompletion.objects.filter(user=user, lesson__course=course).values_list('lesson_id', flat=True)
+            completed_lessons = len(completed_lesson_ids)
+            progress = (completed_lessons / total_lessons) * 100
+            
+            if progress > 0:
+                next_lesson = course.lesson_set.exclude(id__in=completed_lesson_ids).order_by('order').first()
+                data.append({
+                    'id': course.id,
+                    'title': course.title,
+                    'progress': int(progress),
+                    'completed_lessons': completed_lessons,
+                    'total_lessons': total_lessons,
+                    'next_lesson_id': next_lesson.id if next_lesson else None
+                })
+        
+        return Response(data)
 
 #show user info i.e role, bio, profile picture
 class UserProfileView(generics.RetrieveAPIView):

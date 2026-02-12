@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Container, Typography, Card, CardContent, Grid, CircularProgress, Alert, Box } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
+import { Container, Typography, Card, CardContent, Grid, CircularProgress, Alert, Box, CardActionArea } from '@mui/material';
 import { api } from '../services/authService';
 
 function CourseList() {
@@ -12,7 +13,7 @@ function CourseList() {
       try {
         // Use the 'api' instance which automatically includes the auth token.
         // The backend for this endpoint must be configured to require authentication.
-        // Note: If you get a 404, ensure this URL matches your Django urls.py exactly.
+        // NoTE: If there is a 404, ensure this URL matches your Django urls.py exactly.
         const response = await api.get('courses/');
         setCourses(response.data);
       } catch (err) {
@@ -55,18 +56,20 @@ function CourseList() {
         <Grid container spacing={4}>
           {courses.map(course => (
             <Grid item key={course.id} xs={12} sm={6} md={4}>
-              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 3, boxShadow: 2, transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'translateY(-4px)', boxShadow: 8 } }}>
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography gutterBottom variant="h5" component="h2">
-                    {course.title}
-                  </Typography>
-                  <Typography>
-                    {course.description}
-                  </Typography>
-                  <Typography variant="caption" display="block" sx={{ mt: 2 }}>
-                    Instructor: {course.instructor}
-                  </Typography>
-                </CardContent>
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 3, boxShadow: 2, transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'translateY(-4px)', boxShadow: 8, cursor: 'pointer' } }}>
+                <CardActionArea component={RouterLink} to={`/courses/${course.id}`} sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <CardContent sx={{ flexGrow: 1, width: '100%' }}>
+                    <Typography gutterBottom variant="h5" component="h2">
+                      {course.title}
+                    </Typography>
+                    <Typography>
+                      {course.description}
+                    </Typography>
+                    <Typography variant="caption" display="block" sx={{ mt: 2 }}>
+                      Instructor: {course.instructor}
+                    </Typography>
+                  </CardContent>
+                </CardActionArea>
               </Card>
             </Grid>
           ))}
