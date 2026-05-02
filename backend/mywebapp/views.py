@@ -50,7 +50,7 @@ class CustomLoginView(ObtainAuthToken):
 class CourseListCreateView(generics.ListCreateAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    permission_classes = [permissions.IsAuthenticated, IsInstructorOrReadOnly]
+    permission_classes = [IsInstructorOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(instructor=self.request.user)
@@ -72,13 +72,7 @@ class LessonListCreateView(generics.ListCreateAPIView):
         course = get_object_or_404(Course, pk=course_pk)
 
         # Check if user is enrolled or is the instructor
-        is_enrolled = Enrollment.objects.filter(user=user, course=course, paid=True).exists()
-        
         queryset = Lesson.objects.filter(course_id=course_pk).order_by('order')
-
-        if not is_enrolled and course.instructor != user:
-            # Allow access to the first lesson only (Free Preview)
-            return queryset[:1]
 
         return queryset
 

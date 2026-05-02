@@ -125,7 +125,8 @@ const LessonList = () => {
         <Stack spacing={3}>
           {lessons.map((lesson, index) => {
             // A lesson is locked if it's not the first one AND the previous one is not completed
-            const isLocked = index > 0 && !lessons[index - 1].is_completed;
+            // Set to false to allow guest access to all lessons immediately
+            const isLocked = false;
 
             return (
               <Card id={`lesson-${lesson.id}`} key={lesson.id} variant="outlined" sx={{ opacity: isLocked ? 0.7 : 1, position: 'relative' }}>

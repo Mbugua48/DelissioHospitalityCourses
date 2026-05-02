@@ -49,22 +49,10 @@ function App() {
                 </ProtectedRoute>
               } 
             />
-            <Route 
-              path="/courses" 
-              element={
-                <ProtectedRoute>
-                  <CourseList />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/courses/:id" 
-              element={
-                <ProtectedRoute>
-                  <CourseDetail />
-                </ProtectedRoute>
-              } 
-            />
+            {/* Public Access Courses */}
+            <Route path="/courses" element={<CourseList />} />
+            <Route path="/courses/:id" element={<CourseDetail />} />
+            
             <Route 
               path="/courses/:id/certificate" 
               element={
