@@ -17,9 +17,9 @@ const Navbar = ({ mode, toggleTheme }) => {
       <AppBar position="static">
         <Toolbar>
           <Box component={RouterLink} to="/" sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit', flexGrow: 1 }}>
-            <Box component="img" src="/delisio%20couses.png" alt="Logo" sx={{ height: 40, mr: 1 }} />
+            <Box component="img" src="/aptitude-logo.png" alt="APTITUDE ACADEMY Logo" sx={{ height: 40, mr: 1 }} />
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              Delissio Hospitality
+              APTITUDE ACADEMY
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>

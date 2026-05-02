@@ -33,7 +33,7 @@ const AuthLayout = ({ children, title, avatarIcon }) => {
           },
         }}
       >
-        <Box component="img" src="/delisio%20couses.png" alt="Logo" sx={{ width: { xs: 88, sm: 92 }, mb: 1 }} />
+        <Box component="img" src="/aptitude-logo.png" alt="APTITUDE ACADEMY Logo" sx={{ width: { xs: 88, sm: 92 }, mb: 1 }} />
         <Avatar sx={{ m: 1, bgcolor: 'primary.main', width: 56, height: 56 }}>{avatarIcon}</Avatar>
         <Typography component="h1" variant="h5" sx={{ mb: 3, fontWeight: 600 }}>{title}</Typography>
         {children}

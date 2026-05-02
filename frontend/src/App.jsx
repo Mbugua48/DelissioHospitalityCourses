@@ -17,6 +17,7 @@ import ProtectedRoute from './components/ProtectedRoute'; // Import the new comp
 import LandingPage from './components/LandingPage'; // Import the landing page component
 import Certificate from './components/Certificate';
 import MyCertificates from './components/MyCertificates';
+import Checkout from './components/Checkout';
 import { AuthProvider } from './AuthContext';
 
 function App() {
@@ -69,6 +70,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Certificate />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/checkout/:id" 
+              element={
+                <ProtectedRoute>
+                  <Checkout />
                 </ProtectedRoute>
               } 
             />

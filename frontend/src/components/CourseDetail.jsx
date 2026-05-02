@@ -3,12 +3,14 @@ import { useParams, Link as RouterLink } from 'react-router-dom';
 import { Box, Container, Typography, Paper, Button, CircularProgress, Alert, Divider } from '@mui/material';
 import { api } from '../services/authService';
 import LessonList from './LessonList';
+import { ShoppingCart, PlayCircleOutline } from '@mui/icons-material';
 
 const CourseDetail = () => {
   const { id } = useParams();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -75,7 +77,33 @@ const CourseDetail = () => {
           </Typography>
         </Paper>
 
-        <LessonList />
+        {course.is_enrolled || showPreview ? (
+          <Box>
+            {!course.is_enrolled && (
+              <Alert severity="info" sx={{ mb: 3 }}>
+                You are viewing a free preview of the first lesson. <Button component={RouterLink} to={`/checkout/${id}`} size="small" sx={{ fontWeight: 'bold' }}>Enroll Now</Button> to unlock the full course.
+              </Alert>
+            )}
+            <LessonList />
+          </Box>
+        ) : (
+          <Paper elevation={3} sx={{ p: 5, textAlign: 'center', borderRadius: 2 }}>
+            <Typography variant="h5" gutterBottom>
+              Ready to start learning?
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+              Enroll in this course to access all lessons, quizzes, and your certificate of completion.
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
+              <Button component={RouterLink} to={`/checkout/${id}`} variant="contained" size="large" startIcon={<ShoppingCart />} sx={{ minWidth: 250 }}>
+                Enroll Now for KES {course.price}
+              </Button>
+              <Button variant="outlined" size="large" startIcon={<PlayCircleOutline />} onClick={() => setShowPreview(true)} sx={{ minWidth: 250 }}>
+                Watch Free Preview
+              </Button>
+            </Box>
+          </Paper>
+        )}
       </Container>
     </Box>
   );

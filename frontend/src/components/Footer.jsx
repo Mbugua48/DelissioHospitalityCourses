@@ -20,7 +20,7 @@ const Footer = () => {
         <Grid container spacing={4}>
           <Grid size={{ xs: 12, sm: 4 }}>
             <Typography variant="h6" color="text.primary" gutterBottom>
-              Delissio Hospitality
+              APTITUDE ACADEMY
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Elevating culinary excellence through world-class education and community.
@@ -64,7 +64,7 @@ const Footer = () => {
           <Typography variant="body2" color="text.secondary" align="center">
             {'Copyright © '}
             <Link color="inherit" component={RouterLink} to="/">
-              Delissio Hospitality
+              APTITUDE ACADEMY
             </Link>{' '}
             {new Date().getFullYear()}
             {'. All rights reserved.'}

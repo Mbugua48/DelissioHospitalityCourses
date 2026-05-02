@@ -19,7 +19,7 @@ const LandingPage = () => {
       >
         <Container maxWidth="md">
           <Typography component="h1" variant="h2" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
-            Delissio Hospitality
+            APTITUDE ACADEMY
           </Typography>
           <Typography variant="h5" sx={{ mb: 5, opacity: 0.9 }}>
             Elevate your culinary skills and hospitality management with our world-class courses and services.
@@ -111,8 +111,8 @@ const LandingPage = () => {
                 <Typography variant="h6" gutterBottom fontWeight="bold">
                   Email
                 </Typography>
-                <Typography color="text.secondary" component="a" href="mailto:info@delissio.com" sx={{ textDecoration: 'none', color: 'inherit', '&:hover': { color: 'primary.main' } }}>
-                  info@delissio.com
+                <Typography color="text.secondary" component="a" href="mailto:info@aptitudeacademy.com" sx={{ textDecoration: 'none', color: 'inherit', '&:hover': { color: 'primary.main' } }}>
+                  info@aptitudeacademy.com
                 </Typography>
               </Box>
             </Grid>
@@ -132,7 +132,7 @@ const LandingPage = () => {
                   Address
                 </Typography>
                 <Typography color="text.secondary">
-                  123 Delissio Building,<br />
+                  123 APTITUDE Building,<br />
                   Food City, Kenya
                 </Typography>
               </Box>
@@ -148,7 +148,7 @@ const LandingPage = () => {
             Ready to start your journey?
           </Typography>
           <Typography variant="body1" color="text.secondary" paragraph sx={{ mb: 3 }}>
-            Join Delissio Hospitality today and take the first step towards your dream career.
+            Join APTITUDE ACADEMY today and take the first step towards your dream career.
           </Typography>
           <Button
             component={RouterLink}

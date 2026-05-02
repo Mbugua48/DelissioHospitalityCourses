@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link as RouterLink } from 'react-router-dom';
 import { api } from '../services/authService';
-import { Box, Container, Typography, Paper, CircularProgress, Alert, Button, Stack } from '@mui/material';
-import { EmojiEvents, Download } from '@mui/icons-material';
+import { Box, Container, Typography, Paper, CircularProgress, Alert, Button, Stack, Divider } from '@mui/material';
+import { EmojiEvents, Download, Verified, WorkspacePremium } from '@mui/icons-material';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -97,35 +97,95 @@ const Certificate = () => {
         ref={certificateRef}
         elevation={10} 
         sx={{ 
-          p: { xs: 3, md: 6 }, 
+          p: { xs: 2, md: 1 }, 
           width: '100%', 
-          maxWidth: '800px', 
-          border: '10px solid', 
-          borderColor: 'primary.main', 
-          textAlign: 'center', 
+          maxWidth: '850px', 
+          border: '2px solid #c5a059', // Metallic Gold
+          bgcolor: '#fff',
           position: 'relative',
-          bgcolor: 'background.paper'
+          overflow: 'hidden'
         }}
       >
-        <EmojiEvents sx={{ fontSize: { xs: 50, md: 80 }, color: 'gold', position: 'absolute', top: { xs: 10, md: 20 }, right: { xs: 10, md: 20 } }} />
-        <Typography variant="h2" gutterBottom sx={{ fontFamily: 'serif', color: 'primary.dark' }}>
-          Certificate of Completion
-        </Typography>
-        <Typography variant="h6" sx={{ my: 3 }}>
-          This certificate is proudly presented to
-        </Typography>
-        <Typography variant="h3" gutterBottom sx={{ fontFamily: 'cursive', color: 'secondary.main' }}>
-          {certificate.user_name || 'Valued Learner'}
-        </Typography>
-        <Typography variant="h6" sx={{ my: 3 }}>
-          for successfully completing the course
-        </Typography>
-        <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
-          {certificate.course_title}
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mt: 4 }}>
-          Issued on: {new Date(certificate.issued_at).toLocaleDateString()}
-        </Typography>
+        {/* Inner Decorative Frame */}
+        <Box sx={{ 
+          border: '12px double #1a237e', // Navy Blue Double Border
+          p: { xs: 4, md: 6 },
+          textAlign: 'center',
+          height: '100%',
+          position: 'relative',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0, left: 0, right: 0, bottom: 0,
+            opacity: 0.04,
+            backgroundImage: 'url("/aptitude-logo.png")',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
+            backgroundSize: '400px',
+            zIndex: 0
+          }
+        }}>
+          <Box sx={{ position: 'relative', zIndex: 1 }}>
+            <WorkspacePremium sx={{ fontSize: 60, color: '#c5a059', mb: 2 }} />
+            
+            <Typography variant="h6" sx={{ letterSpacing: 4, textTransform: 'uppercase', color: '#1a237e', fontWeight: 700, mb: 1 }}>
+              APTITUDE ACADEMY
+            </Typography>
+            
+            <Typography variant="h2" gutterBottom sx={{ fontFamily: '"Playfair Display", serif', color: '#1a237e', fontWeight: 'bold', mb: 4 }}>
+              Certificate of Completion
+            </Typography>
+
+            <Typography variant="body1" sx={{ fontStyle: 'italic', fontSize: '1.2rem', mb: 1 }}>
+              This is to certify that
+            </Typography>
+
+            <Typography variant="h3" gutterBottom sx={{ fontFamily: '"Dancing Script", cursive', color: '#c5a059', py: 2, borderBottom: '1px solid #eee', width: 'fit-content', mx: 'auto', minWidth: '300px' }}>
+              {certificate.user_name || 'Valued Learner'}
+            </Typography>
+
+            <Typography variant="body1" sx={{ fontSize: '1.1rem', mt: 3, mb: 1 }}>
+              has successfully completed all requirements for
+            </Typography>
+
+            <Typography variant="h4" gutterBottom sx={{ fontWeight: 800, color: '#333', mb: 4 }}>
+              {certificate.course_title}
+            </Typography>
+
+            <Stack direction="row" justifyContent="space-around" alignItems="flex-end" sx={{ mt: 8 }}>
+              <Box sx={{ width: '180px' }}>
+                <Typography variant="body2" sx={{ fontFamily: '"Dancing Script", cursive', mb: 0, fontSize: '1.2rem' }}>
+                  {certificate.instructor_name}
+                </Typography>
+                <Divider sx={{ mb: 1, borderColor: '#333' }} />
+                <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', textTransform: 'uppercase' }}>
+                  Lead Instructor
+                </Typography>
+              </Box>
+
+              <Box sx={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Verified sx={{ fontSize: 70, color: '#c5a059', opacity: 0.8 }} />
+                <Typography variant="caption" sx={{ mt: 1, color: 'text.secondary', fontWeight: 'bold' }}>
+                  ID: {id}-{new Date(certificate.issued_at).getTime().toString().slice(-6)}
+                </Typography>
+              </Box>
+
+              <Box sx={{ width: '180px' }}>
+                <Typography variant="body2" sx={{ fontFamily: '"Dancing Script", cursive', mb: 0, fontSize: '1.2rem' }}>
+                  A. N. Mutuga
+                </Typography>
+                <Divider sx={{ mb: 1, borderColor: '#333' }} />
+                <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', textTransform: 'uppercase' }}>
+                  Academic Director
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 6 }}>
+              Issued on this day: {new Date(certificate.issued_at).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </Typography>
+          </Box>
+        </Box>
       </Paper>
 
       <Stack direction="row" spacing={2} sx={{ mt: 4 }}>

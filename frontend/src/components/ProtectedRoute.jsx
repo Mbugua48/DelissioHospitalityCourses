@@ -1,24 +1,19 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { CircularProgress, Box } from '@mui/material';
 import { useAuth } from '../AuthContext';
 
-const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+const ProtectedRoute = ({ children, requiredRole }) => {
+  const { user } = useAuth();
   const location = useLocation();
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    );
+  // If there's no authenticated user, redirect to login
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!user || !user.token) {
-    // If not authenticated, redirect to the login page.
-    // We also pass the current location in state so we can redirect back after login.
-    return <Navigate to="/login" state={{ from: location }} replace />;
+  // Optional: Check for specific roles (e.g., 'instructor')
+  if (requiredRole && user.role !== requiredRole) {
+    return <Navigate to="/" replace />;
   }
 
   return children;

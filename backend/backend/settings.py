@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -82,8 +83,15 @@ AUTH_USER_MODEL = 'mywebapp.User'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'aptitude_db', # Or whatever you named your MySQL database
+        'USER': 'root', # e.g., 'root'
+        'PASSWORD': '', # Your MySQL password
+        'HOST': 'localhost', # Or your MySQL server IP/hostname
+        'PORT': '3306', # Default MySQL port
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
 
@@ -139,9 +147,50 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '5/minute',
+        'user': '1000/day'
+    },
     'EXCEPTION_HANDLER': 'mywebapp.utils.custom_exception_handler',
 }
+
+# Site Configuration
+SITE_NAME = 'APTITUDE ACADEMY'
+DEFAULT_FROM_EMAIL = 'noreply@aptitudeacademy.com'
 
 
 # Email Backend for Development (prints emails to console)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Stripe Configuration
+STRIPE_PUBLISHABLE_KEY = 'pk_test_your_publishable_key'
+STRIPE_SECRET_KEY = 'sk_test_your_secret_key'
+STRIPE_WEBHOOK_SECRET = 'whsec_...' # Paste your actual secret here
+DOMAIN_URL = 'http://localhost:5173'
+
+# ==========================================
+# M-Pesa Daraja API Configuration
+# ==========================================
+
+# Environment: 'sandbox' or 'production'
+MPESA_ENVIRONMENT = os.environ.get('MPESA_ENVIRONMENT', 'sandbox')
+
+# Credentials from Safaricom Developer Portal
+MPESA_CONSUMER_KEY = os.environ.get('MPESA_CONSUMER_KEY', 'your_consumer_key_here')
+MPESA_CONSUMER_SECRET = os.environ.get('MPESA_CONSUMER_SECRET', 'your_consumer_secret_here')
+
+# Business Shortcode (Paybill or Till Number)
+# 174379 is the default Safaricom Sandbox Paybill
+MPESA_SHORTCODE = os.environ.get('MPESA_SHORTCODE', '174379')
+
+# Passkey (Generated on the portal for the specific shortcode)
+MPESA_PASSKEY = os.environ.get('MPESA_PASSKEY', 'your_passkey_here')
+
+# Callback URL
+# This must be a publicly accessible URL (use Ngrok for localhost development)
+# Example: https://your-ngrok-url.ngrok-free.app/api/mywebapp/webhook/mpesa/
+MPESA_CALLBACK_URL = os.environ.get('MPESA_CALLBACK_URL', 'https://yourdomain.com/api/mywebapp/webhook/mpesa/')

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import User
-from .models import Course, Lesson, Quiz, Question, Certificate
+from .models import Course, Lesson, Quiz, Question, Certificate, Enrollment, Coupon
 
 # Register your models here.
 
@@ -36,4 +36,10 @@ class CourseAdmin(admin.ModelAdmin):
 admin.site.register(Course, CourseAdmin)
 admin.site.register(Quiz, QuizAdmin)
 admin.site.register(Certificate)
+admin.site.register(Enrollment)
+admin.site.register(Coupon)
+
+admin.site.site_header = "APTITUDE ACADEMY Admin"
+admin.site.site_title = "APTITUDE ACADEMY Portal"
+admin.site.index_title = "Welcome to APTITUDE ACADEMY"
     

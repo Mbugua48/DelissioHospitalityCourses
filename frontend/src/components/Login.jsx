@@ -56,10 +56,8 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // The backend expects 'username' and 'password'.
-      // Since we registered with email as username, we map email input to username here.
       await login({
-        username: credentials.email,
+        email: credentials.email,
         password: credentials.password,
       });
       
